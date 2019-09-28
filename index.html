@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Minecraft Enchantment</title>
+	<script src="./enchantments.js"></script>
+	<script src="./Items.js"></script>
+	<script src="./PrimaryItems.js"></script>
+	<script src="./SecondaryItems.js"></script>
+	<script src="./Conflictings.js"></script>
+	<style type="text/css">
+		div.sel_enchantment{
+			width: 480px;
+			height: auto;
+			float: left;
+		}
+	</style>
+	<script type="text/javascript">
+		function Select(datas, _fun) {
+			var o_datas = [];
+			for (var i = 0; i < datas.length; i++) {
+				var o_data = _fun(datas[i]);
+				if (o_data != null) {
+					o_datas.push(o_data);
+				}
+			}
+			return o_datas;
+		}
+		function createElement(arg) {
+			return document.createElement(arg);
+		}
+		function createSelect(MaxLevel, Namespaced_ID) {
+			var select = createElement('select');
+			select.id = 'level_'+Namespaced_ID;
+			for (var i = 1; i <= MaxLevel; i++) {
+				var option = createElement('option');
+				option.innerText = i;
+				option.value = i;
+				option.selected = MaxLevel === i;
+				select.appendChild(option);
+			}
+			return select;
+		}
+		//checkbox
+		function create_checkbox(enchantments,sel_enchantment) {
+			var tt = {length:12,text:''};
+			
+			enchantments.forEach((enchantment, index)=>{
+				tt.text += enchantment.Name;
+				var label = createElement('label');
+				label.innerHTML = enchantment.Name;
+				label.setAttribute('for', enchantment.Namespaced_ID)
+
+				var input = createElement('input');
+				input.type = 'checkbox';
+				input.id = enchantment.Namespaced_ID;
+				input.checked = check_conflict(sel_All.value === "y", enchantment.Namespaced_ID);
+				input.onclick = function(){
+					if (sel_Conflicting.value === "y") {
+						var bool = check_conflict(!0, this.id);
+						set_give_Item();
+						return bool;
+					}else{
+						set_give_Item();
+					}
+				};
+
+				sel_enchantment.appendChild(input);
+				sel_enchantment.appendChild(label);
+				sel_enchantment.appendChild(createSelect(enchantment.MaxLevel, enchantment.Namespaced_ID));
+				
+				if (tt.text.length > tt.length) {
+					sel_enchantment.appendChild(createElement('br'));
+					tt.text='';
+				}
+				
+
+			});
+		}
+		function create_enchantment_checkbox(Id, datas, sel_enchantment) {
+			var _datas = Select(datas,(d)=>{
+				var PrimaryItem = null;
+				for (var i = 0; i < d.Items.length; i++) {
+					if (d.Items[i] == Id) {
+						PrimaryItem = d;
+					}
+				}
+				return PrimaryItem;
+			})
+			sel_enchantment.innerHTML = '';
+			create_checkbox(Select(enchantments, (data)=>{
+				var bool = false;
+				for (var i = 0; i < _datas.length; i++) {
+					if (_datas[i].Namespaced_ID === data.Namespaced_ID ) {
+						bool |= !0;
+						break;
+					}
+				}
+				return bool?data:null;
+			}),sel_enchantment);
+		}
+		function set_checked(bool, ench, Namespaced_ID) {
+			for (var i = 0; i < ench.length; i++) {
+				if (ench[i] === Namespaced_ID) {
+					if(document.getElementById(ench[i])){
+						document.getElementById(ench[i]).checked = !0;
+					}
+				} else {
+					if(document.getElementById(ench[i])){
+						document.getElementById(ench[i]).checked = !1;
+					}
+				}
+			}
+			for (var i = 0; i < ench.length; i++) {
+				if (ench[i] != Namespaced_ID && document.getElementById(ench[i]) && document.getElementById(ench[i]).checked == true) {
+					bool = false;
+				}
+			}
+			return bool;
+		}
+		function check_conflict(bool, Namespaced_ID) {
+			if (bool) {
+				if (Conflictings._1[0].findIndex(d=>d==Namespaced_ID) > -1) {
+					bool = set_checked(bool, Conflictings._1[0], Namespaced_ID);
+
+				} else if(Conflictings._1[1].findIndex(d=>d==Namespaced_ID) > -1) {
+					bool = set_checked(bool, Conflictings._1[1], Namespaced_ID);
+
+				} else if(Conflictings._1[2].findIndex(d=>d==Namespaced_ID) > -1) {
+					bool = set_checked(bool, Conflictings._1[2], Namespaced_ID);
+
+				} else if(Conflictings._1[3].findIndex(d=>d==Namespaced_ID) > -1) {
+					bool = set_checked(bool, Conflictings._1[3], Namespaced_ID);
+
+				} else if(Conflictings._1[4].findIndex(d=>d==Namespaced_ID) > -1) {
+					bool = set_checked(bool, Conflictings._1[4], Namespaced_ID);
+
+				} 
+
+				if (Conflictings._2[0].findIndex(d=>d==Namespaced_ID) > -1) {
+					bool = set_checked(bool, Conflictings._2[0], Namespaced_ID);
+
+				} else if(Conflictings._2[1].findIndex(d=>d==Namespaced_ID) > -1) {
+					bool = set_checked(bool, Conflictings._2[1], Namespaced_ID);
+
+				}
+			}
+			return bool;
+		}
+		function default_Not_checked() {
+			var elIDs = ['sweeping', 'vanishing_curse', 'binding_curse'];
+
+			for (var i = 0; i < elIDs.length; i++) {
+				if(document.getElementById(elIDs[i]))
+					document.getElementById(elIDs[i]).checked = false;
+			}
+			
+			default_disabled ();
+		}
+		function default_disabled () {
+			var elIDs = ['sweeping'];
+
+			for (var i = 0; i < elIDs.length; i++) {
+				if(document.getElementById(elIDs[i]))
+					document.getElementById(elIDs[i]).disabled  = true;
+			}
+		}
+
+		var MGItems = [];
+		function set_give_Item() {
+			MGItems = [];
+			var array1 = Select(sel_enchantment_1.children,(d)=>{
+				return d.checked?d:null;
+			});
+			var array2 = Select(sel_enchantment_2.children,(d)=>{
+				return d.checked?d:null;
+			});
+			var oStr = "/give @s minecraft:"+sel_Material.value;
+			var oStr2 = "";
+			array1.concat(array2).forEach((d)=>{
+				MGItems.push({
+					id:d.id,
+					level:document.getElementById('level_'+d.id).value,
+				});
+				oStr2 += "{lvl:"+document.getElementById('level_'+d.id).value
+				+",id:"+d.id+"},";
+			});
+			oStr2 = oStr2.substring(0, oStr2.length - 1);
+			oStr += "{Enchantments:["+oStr2+"]}";
+			console.log(MGItems);
+			if (oStr.length > 256) {alert("字數超過256")}
+			give_Item.value = oStr;
+		}
+	</script>
+</head>
+<body>
+	<br>
+	<textarea name="give_Item" id="give_Item" cols="100" rows="5"></textarea>
+	<br>
+	<select name="" id="sel_Items"></select>
+	<select name="" id="sel_Material"></select>
+	<select name="" id="sel_All"><option value="y">全選</option><option value="n">不全選</option></select>
+	附魔衝突:<select name="" id="sel_Conflicting"><option value="y">是</option><option value="n">否</option></select>
+	<br>
+	<div class="sel_enchantment">附魔台：</div>
+	<div class="sel_enchantment">附魔書：</div>
+	<hr>
+	<div style="" id="sel_enchantment_1" class='sel_enchantment'>
+		
+	</div>
+	<div style="" id="sel_enchantment_2" class='sel_enchantment'>
+		
+	</div>
+
+	<script type="text/javascript">
+		
+		// select
+		Items.forEach((Item, index)=>{
+			var option = createElement('option');
+			option.innerText = Item.name;
+			option.value = index;
+			sel_Items.appendChild(option);
+		});
+		// select
+		Items[0].DataValues.forEach((DataValue, index)=>{
+			var option = createElement('option');
+			option.innerText = DataValue.Item;
+			option.value = DataValue.Namespaced_ID;
+			sel_Material.appendChild(option);
+		});
+		//checkbox
+		create_enchantment_checkbox(0, PrimaryItems, sel_enchantment_1);
+		create_enchantment_checkbox(0, SecondaryItems, sel_enchantment_2);
+		default_Not_checked();
+		set_give_Item();
+		/*
+		change
+		*/
+		sel_Items.addEventListener("change", function() {
+			var self = this;
+			sel_Material.innerHTML = '';
+			Items[self.value].DataValues.forEach((DataValue, index)=>{
+				var option = createElement('option');
+				option.innerText = DataValue.Item;
+				option.value = DataValue.Namespaced_ID;
+				sel_Material.appendChild(option);
+			});
+
+			//checkbox
+			create_enchantment_checkbox(self.value, PrimaryItems, sel_enchantment_1);
+			create_enchantment_checkbox(self.value, SecondaryItems, sel_enchantment_2);
+			default_Not_checked();
+			set_give_Item();
+			
+		});
+		sel_Conflicting.addEventListener("change", function() {
+			create_enchantment_checkbox(sel_Items.value, PrimaryItems, sel_enchantment_1);
+			create_enchantment_checkbox(sel_Items.value, SecondaryItems, sel_enchantment_2);
+			default_Not_checked();
+			set_give_Item();
+		});
+		sel_Material.addEventListener("change", function() {
+			set_give_Item();
+		});
+		
+		
+
+	</script>
+</body>
+</html>
